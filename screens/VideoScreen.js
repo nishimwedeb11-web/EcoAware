@@ -1,196 +1,419 @@
+import { useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, StatusBar, Modal, Image, Dimensions
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Image,
+  TextInput,
+  Linking,
 } from 'react-native';
-import { useState } from 'react';
-import { WebView } from 'react-native-webview';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const { width } = Dimensions.get('window');
+import { Elevation, Fonts, Palette, Radius } from '../constants/design';
 
 const VIDEOS = [
   {
     id: 'ZyTy29GaIrs',
     title: "Earth's Carbon Crisis Explained",
     channel: 'NASA Goddard',
-    desc: "NASA visualises how carbon dioxide moves through Earth's atmosphere and why it matters for our climate.",
+    desc: "A visual explanation of carbon flow through Earth's systems and its climate implications.",
     duration: '4:30',
-    tag: '🛰️ SCIENCE',
-    tagColor: '#48cae4',
+    tag: 'SCIENCE',
+    tagColor: '#7ebdff',
     thumb: 'https://img.youtube.com/vi/ZyTy29GaIrs/hqdefault.jpg',
   },
   {
     id: 'G4H1N_yXBiA',
     title: 'David Attenborough on Biodiversity',
     channel: 'WWF',
-    desc: "Sir David Attenborough delivers a powerful message about protecting Earth's wildlife.",
+    desc: 'A concise call to protect ecosystems and species at risk.',
     duration: '3:58',
-    tag: '🌿 NATURE',
-    tagColor: '#a8d5a2',
+    tag: 'NATURE',
+    tagColor: '#8be4c0',
     thumb: 'https://img.youtube.com/vi/G4H1N_yXBiA/hqdefault.jpg',
   },
   {
     id: 'ipVCHnFCMos',
     title: 'The Ocean Plastic Problem',
     channel: 'TED-Ed',
-    desc: 'How billions of tonnes of plastic end up in our oceans and what scientists are doing about it.',
+    desc: 'How plastic enters oceans and the science behind mitigation strategies.',
     duration: '5:14',
-    tag: '🌊 OCEAN',
-    tagColor: '#48cae4',
+    tag: 'OCEAN',
+    tagColor: '#7ebdff',
     thumb: 'https://img.youtube.com/vi/ipVCHnFCMos/hqdefault.jpg',
   },
   {
     id: 'wbR-5mHI6bo',
     title: 'What is Climate Change?',
     channel: 'NASA Climate',
-    desc: 'A clear visual explanation of climate change, its causes, effects, and what we can do.',
+    desc: 'An accessible breakdown of causes, effects, and practical response pathways.',
     duration: '6:02',
-    tag: '🔥 CLIMATE',
-    tagColor: '#ff6b6b',
+    tag: 'CLIMATE',
+    tagColor: '#ff9d9d',
     thumb: 'https://img.youtube.com/vi/wbR-5mHI6bo/hqdefault.jpg',
   },
 ];
 
+const VIDEO_FILTERS = ['ALL', 'SCIENCE', 'NATURE', 'OCEAN', 'CLIMATE'];
+
 export default function VideoScreen() {
   const insets = useSafeAreaInsets();
-  const [playing, setPlaying] = useState(null);
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('ALL');
+
+  const openVideo = async (video) => {
+    const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;
+    await Linking.openURL(videoUrl);
+  };
+
+  const filteredVideos = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return VIDEOS.filter((video) => {
+      const byTag = filter === 'ALL' || video.tag === filter;
+      const byQuery =
+        normalizedQuery.length === 0 ||
+        video.title.toLowerCase().includes(normalizedQuery) ||
+        video.channel.toLowerCase().includes(normalizedQuery) ||
+        video.desc.toLowerCase().includes(normalizedQuery);
+      return byTag && byQuery;
+    });
+  }, [query, filter]);
+
+  const featured = filteredVideos[0] || null;
+  const rest = filteredVideos.slice(1);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#050f07" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={Palette.bg} />
 
-      {/* VIDEO PLAYER MODAL */}
-      <Modal visible={!!playing} animationType="slide" transparent={false}>
-        <View style={[styles.playerModal, { paddingTop: insets.top }]}>
-          <TouchableOpacity style={styles.closeBtn} onPress={() => setPlaying(null)}>
-            <Text style={styles.closeBtnText}>✕  Close</Text>
-          </TouchableOpacity>
-          {playing && (
-            <>
-              <View style={styles.playerBox}>
-                <WebView
-                  source={{ uri: `https://www.youtube.com/embed/${playing.id}?autoplay=1&rel=0` }}
-                  style={styles.webview}
-                  allowsFullscreenVideo
-                  javaScriptEnabled
-                />
-              </View>
-              <View style={styles.playerMeta}>
-                <Text style={[styles.playerTag, { color: playing.tagColor }]}>{playing.tag}</Text>
-                <Text style={styles.playerTitle}>{playing.title}</Text>
-                <Text style={styles.playerChannel}>{playing.channel}  ·  {playing.duration}</Text>
-                <Text style={styles.playerDesc}>{playing.desc}</Text>
-              </View>
-            </>
-          )}
-        </View>
-      </Modal>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-
-        {/* HEADER */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: insets.top + 10,
+          paddingBottom: insets.bottom + 94,
+        }}>
         <View style={styles.header}>
-          <Text style={styles.screenTitle}>Watch & Learn</Text>
-          <Text style={styles.screenSub}>Curated videos from NASA, WWF and TED-Ed</Text>
+          <Text style={styles.kicker}>LEARNING HUB</Text>
+          <Text style={styles.title}>Watch & Learn</Text>
+          <Text style={styles.subtitle}>Curated explainers from trusted environmental and science sources.</Text>
+          <Text style={styles.linkHint}>Videos open directly on YouTube.</Text>
         </View>
 
-        {/* FEATURED VIDEO */}
-        <TouchableOpacity style={styles.featuredCard} onPress={() => setPlaying(VIDEOS[0])}>
-          <Image
-            source={{ uri: VIDEOS[0].thumb }}
-            style={styles.featuredThumb}
-            resizeMode="cover"
-          />
-          <View style={styles.featuredOverlay}>
-            <View style={styles.featuredPlayBtn}>
-              <Text style={styles.featuredPlayIcon}>▶</Text>
-            </View>
+        <View style={styles.controlsWrap}>
+          <View style={styles.searchWrap}>
+            <Ionicons name="search-outline" size={16} color={Palette.textMuted} />
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search videos"
+              placeholderTextColor={Palette.textMuted}
+              style={styles.searchInput}
+            />
           </View>
-          <View style={styles.featuredMeta}>
-            <Text style={[styles.videoTag, { color: VIDEOS[0].tagColor }]}>{VIDEOS[0].tag}</Text>
-            <Text style={styles.featuredTitle}>{VIDEOS[0].title}</Text>
-            <Text style={styles.featuredChannel}>{VIDEOS[0].channel}  ·  {VIDEOS[0].duration}</Text>
-          </View>
-        </TouchableOpacity>
 
-        {/* MORE VIDEOS */}
-        <Text style={styles.sectionTitle}>More Videos</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+            {VIDEO_FILTERS.map((item) => {
+              const active = item === filter;
+              return (
+                <TouchableOpacity
+                  key={item}
+                  style={[styles.filterChip, active && styles.filterChipActive]}
+                  onPress={() => setFilter(item)}>
+                  <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{item}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {featured && (
+          <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9} onPress={() => openVideo(featured)}>
+            <Image source={{ uri: featured.thumb }} style={styles.featuredThumb} resizeMode="cover" />
+            <View style={styles.featuredOverlay}>
+              <View style={styles.playButton}>
+                <Ionicons name="play" size={22} color={Palette.white} style={{ marginLeft: 2 }} />
+              </View>
+            </View>
+
+            <View style={styles.featuredMeta}>
+              <Text style={[styles.videoTag, { color: featured.tagColor }]}>{featured.tag}</Text>
+              <Text style={styles.featuredTitle}>{featured.title}</Text>
+              <Text style={styles.featuredChannel}>{featured.channel}  ·  {featured.duration}</Text>
+              <View style={styles.openHintRow}>
+                <Ionicons name="open-outline" size={12} color={Palette.textMuted} />
+                <Text style={styles.openHintText}>Open on YouTube</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>More from the library</Text>
+        </View>
+
         <View style={styles.videoList}>
-          {VIDEOS.slice(1).map((v) => (
-            <TouchableOpacity key={v.id} style={styles.videoRow} onPress={() => setPlaying(v)}>
+          {rest.map((video) => (
+            <TouchableOpacity
+              key={video.id}
+              style={styles.videoRow}
+              activeOpacity={0.9}
+              onPress={() => openVideo(video)}>
               <View style={styles.thumbBox}>
-                <Image source={{ uri: v.thumb }} style={styles.rowThumb} resizeMode="cover" />
-                <View style={styles.rowPlayOverlay}>
-                  <Text style={{ color: 'white', fontSize: 14 }}>▶</Text>
+                <Image source={{ uri: video.thumb }} style={styles.rowThumb} resizeMode="cover" />
+                <View style={styles.thumbOverlay}>
+                  <Ionicons name="play" size={13} color={Palette.white} />
                 </View>
               </View>
+
               <View style={styles.rowMeta}>
-                <Text style={[styles.rowTag, { color: v.tagColor }]}>{v.tag}</Text>
-                <Text style={styles.rowTitle} numberOfLines={2}>{v.title}</Text>
-                <Text style={styles.rowChannel}>{v.channel}  ·  {v.duration}</Text>
+                <Text style={[styles.rowTag, { color: video.tagColor }]}>{video.tag}</Text>
+                <Text style={styles.rowTitle} numberOfLines={2}>
+                  {video.title}
+                </Text>
+                <Text style={styles.rowChannel}>{video.channel}  ·  {video.duration}</Text>
+                <View style={styles.openHintRow}>
+                  <Ionicons name="open-outline" size={11} color={Palette.textMuted} />
+                  <Text style={styles.openHintText}>YouTube</Text>
+                </View>
               </View>
             </TouchableOpacity>
           ))}
-        </View>
 
-        <View style={{ height: 20 }} />
+          {filteredVideos.length === 0 && (
+            <View style={styles.emptyState}>
+              <Ionicons name="videocam-off-outline" size={18} color={Palette.textMuted} />
+              <Text style={styles.emptyStateText}>No videos match this search.</Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050f07' },
-  header: { padding: 22, paddingBottom: 16 },
-  screenTitle: { color: '#e8f5ee', fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
-  screenSub: { color: '#5a8a6a', fontSize: 13, marginTop: 4 },
+  container: {
+    flex: 1,
+    backgroundColor: Palette.bg,
+  },
+  header: {
+    paddingHorizontal: 22,
+    marginBottom: 14,
+  },
+  kicker: {
+    ...Fonts.label,
+    color: Palette.accent,
+  },
+  title: {
+    ...Fonts.title,
+    color: Palette.textPrimary,
+    marginTop: 4,
+  },
+  subtitle: {
+    marginTop: 6,
+    color: Palette.textSecondary,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  linkHint: {
+    marginTop: 6,
+    color: Palette.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  controlsWrap: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  searchWrap: {
+    minHeight: 42,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: Palette.textPrimary,
+    fontSize: 13,
+    paddingVertical: 0,
+  },
+  filterRow: {
+    paddingTop: 10,
+    paddingRight: 4,
+    gap: 8,
+  },
+  filterChip: {
+    minHeight: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 11,
+  },
+  filterChipActive: {
+    borderColor: Palette.accent,
+    backgroundColor: Palette.accent,
+  },
+  filterChipText: {
+    color: Palette.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  filterChipTextActive: {
+    color: Palette.bg,
+  },
   featuredCard: {
-    marginHorizontal: 16, borderRadius: 24, overflow: 'hidden',
-    backgroundColor: '#0a1f10', marginBottom: 24, borderWidth: 1, borderColor: '#1a3a20',
+    marginHorizontal: 16,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
+    overflow: 'hidden',
+    ...Elevation.card,
   },
-  featuredThumb: { width: '100%', height: 200 },
+  featuredThumb: {
+    width: '100%',
+    height: 210,
+  },
   featuredOverlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, height: 200,
-    backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 210,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  featuredPlayBtn: {
-    width: 60, height: 60, borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)',
-    alignItems: 'center', justifyContent: 'center',
+  playButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  featuredPlayIcon: { color: 'white', fontSize: 22, marginLeft: 3 },
-  featuredMeta: { padding: 16 },
-  videoTag: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2, marginBottom: 6 },
-  featuredTitle: { color: '#e8f5ee', fontSize: 18, fontWeight: '700', lineHeight: 24, marginBottom: 6 },
-  featuredChannel: { color: '#5a8a6a', fontSize: 12 },
+  featuredMeta: {
+    padding: 16,
+  },
+  videoTag: {
+    ...Fonts.label,
+  },
+  featuredTitle: {
+    marginTop: 6,
+    color: Palette.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
+    lineHeight: 24,
+  },
+  featuredChannel: {
+    marginTop: 5,
+    color: Palette.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  openHintRow: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  openHintText: {
+    color: Palette.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  sectionHeader: {
+    marginTop: 22,
+    marginBottom: 10,
+    paddingHorizontal: 22,
+  },
   sectionTitle: {
-    color: '#e8f5ee', fontSize: 18, fontWeight: '700',
-    paddingHorizontal: 22, marginBottom: 14, letterSpacing: -0.3,
+    ...Fonts.section,
+    color: Palette.textPrimary,
   },
-  videoList: { paddingHorizontal: 16, gap: 14 },
+  videoList: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
   videoRow: {
-    flexDirection: 'row', gap: 14, backgroundColor: '#0a1f10',
-    borderRadius: 16, borderWidth: 1, borderColor: '#1a3a20', overflow: 'hidden',
+    flexDirection: 'row',
+    gap: 12,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
+    overflow: 'hidden',
+    ...Elevation.soft,
   },
-  thumbBox: { width: 110 },
-  rowThumb: { width: 110, height: 90 },
-  rowPlayOverlay: {
-    position: 'absolute', top: 0, left: 0, width: 110, height: 90,
-    backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center',
+  thumbBox: {
+    width: 118,
+    height: 94,
   },
-  rowMeta: { flex: 1, padding: 10, justifyContent: 'center' },
-  rowTag: { fontSize: 9, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
-  rowTitle: { color: '#e8f5ee', fontSize: 13, fontWeight: '700', lineHeight: 18, marginBottom: 4 },
-  rowChannel: { color: '#5a8a6a', fontSize: 11 },
-  playerModal: { flex: 1, backgroundColor: '#050f07' },
-  closeBtn: { padding: 20, paddingBottom: 12 },
-  closeBtnText: { color: '#8ab09a', fontSize: 14, fontWeight: '600' },
-  playerBox: { width: width, height: width * 0.5625, backgroundColor: '#000' },
-  webview: { flex: 1 },
-  playerMeta: { padding: 22 },
-  playerTag: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 8 },
-  playerTitle: { color: '#e8f5ee', fontSize: 22, fontWeight: '800', lineHeight: 28, marginBottom: 6 },
-  playerChannel: { color: '#5a8a6a', fontSize: 13, marginBottom: 12 },
-  playerDesc: { color: '#8ab09a', fontSize: 14, lineHeight: 22 },
+  rowThumb: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowMeta: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingRight: 10,
+    justifyContent: 'center',
+  },
+  rowTag: {
+    ...Fonts.label,
+    fontSize: 10,
+  },
+  rowTitle: {
+    marginTop: 5,
+    color: Palette.textPrimary,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+  },
+  rowChannel: {
+    marginTop: 4,
+    color: Palette.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  emptyState: {
+    minHeight: 90,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  emptyStateText: {
+    color: Palette.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+  },
 });

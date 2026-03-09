@@ -1,30 +1,53 @@
-import {
-  View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, StatusBar, Animated
-} from 'react-native';
 import { useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Animated,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Elevation, Fonts, Palette, Radius, Space } from '../constants/design';
 
 const TOPICS = [
-  { id: 1, emoji: '🌊', label: 'Ocean' },
-  { id: 2, emoji: '🌳', label: 'Forests' },
-  { id: 3, emoji: '🌡️', label: 'Climate' },
-  { id: 4, emoji: '🦁', label: 'Wildlife' },
-  { id: 5, emoji: '💧', label: 'Water' },
+  {
+    id: 1,
+    icon: 'water-outline',
+    title: 'Ocean Health',
+    subtitle: 'Plastic leakage and acidity are reshaping marine ecosystems.',
+    route: 'issues',
+  },
+  {
+    id: 2,
+    icon: 'leaf-outline',
+    title: 'Forests',
+    subtitle: 'Biodiversity-rich forests are under pressure from land conversion.',
+    route: 'issues',
+  },
+  {
+    id: 3,
+    icon: 'flame-outline',
+    title: 'Climate Risk',
+    subtitle: 'Heatwaves, floods, and droughts are increasing in intensity.',
+    route: 'issues',
+  },
 ];
 
 const STATS = [
-  { value: '42+', label: 'Issues tracked' },
-  { value: '9+', label: 'Years of data' },
-  { value: '127', label: 'Countries affected' },
+  { label: 'Tracked Issues', value: '42+' },
+  { label: 'Data Timeline', value: '9 Years' },
+  { label: 'Countries', value: '127' },
 ];
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const riseAnim = useRef(new Animated.Value(18)).current;
 
   const goTo = (screenName) => {
     if (navigation?.navigate) {
@@ -36,153 +59,399 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 650, useNativeDriver: true }),
+      Animated.timing(riseAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fadeAnim, riseAnim]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#050f07" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={Palette.bg} />
+      <View pointerEvents="none" style={styles.bgGlowTop} />
+      <View pointerEvents="none" style={styles.bgGlowRight} />
 
-        {/* HEADER */}
-        <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.greeting}>Good morning 🌱</Text>
-              <Text style={styles.headerTitle}>EcoAware</Text>
-            </View>
-            <View style={styles.leafBadge}>
-              <Text style={{ fontSize: 20 }}>🌿</Text>
-            </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: insets.top + 8,
+          paddingBottom: insets.bottom + 94,
+        }}>
+        <Animated.View
+          style={[
+            styles.header,
+            { opacity: fadeAnim, transform: [{ translateY: riseAnim }] },
+          ]}>
+          <View>
+            <Text style={styles.greeting}>Sustainability Dashboard</Text>
+            <Text style={styles.title}>EcoAware</Text>
+          </View>
+          <View style={styles.headerBadge}>
+            <Ionicons name="sparkles" size={18} color={Palette.accent} />
           </View>
         </Animated.View>
 
-        {/* HERO CARD */}
-        <Animated.View style={[styles.heroCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <Text style={styles.heroLabel}>🌍 COUNTRIES AFFECTED</Text>
+        <Animated.View
+          style={[
+            styles.hero,
+            { opacity: fadeAnim, transform: [{ translateY: riseAnim }] },
+          ]}>
+          <View style={styles.heroTopRow}>
+            <Text style={styles.heroLabel}>GLOBAL IMPACT OVERVIEW</Text>
+            <View style={styles.heroPill}>
+              <Ionicons name="trending-up" size={12} color={Palette.accent} />
+              <Text style={styles.heroPillText}>Live Insight</Text>
+            </View>
+          </View>
+
           <Text style={styles.heroNumber}>127</Text>
-          <Text style={styles.heroSub}>by critical sustainability issues right now</Text>
-          <View style={styles.progressContainer}>
-            <Text style={styles.progressLabel}>Global action progress</Text>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: '38%' }]} />
+          <Text style={styles.heroSub}>countries currently affected by urgent environmental pressure</Text>
+
+          <View style={styles.progressBlock}>
+            <View style={styles.progressHeader}>
+              <Text style={styles.progressTitle}>Global action progress</Text>
+              <Text style={styles.progressPercent}>38%</Text>
             </View>
-            <Text style={styles.progressPct}>38%</Text>
+            <View style={styles.progressTrack}>
+              <View style={styles.progressFill} />
+            </View>
           </View>
         </Animated.View>
 
-        {/* STATS ROW */}
-        <Animated.View style={[styles.statsRow, { opacity: fadeAnim }]}>
-          {STATS.map((s, i) => (
-            <View key={i} style={styles.statChip}>
-              <Text style={styles.statVal}>{s.value}</Text>
-              <Text style={styles.statLab}>{s.label}</Text>
+        <View style={styles.statsRow}>
+          {STATS.map((item) => (
+            <View key={item.label} style={styles.statCard}>
+              <Text style={styles.statValue}>{item.value}</Text>
+              <Text style={styles.statLabel}>{item.label}</Text>
             </View>
           ))}
-        </Animated.View>
+        </View>
 
-        {/* TOPIC CIRCLES */}
-        <Animated.View style={{ opacity: fadeAnim }}>
-          <Text style={styles.sectionTitle}>Explore Topics</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.topicsScroll}>
-            {TOPICS.map((t) => (
-              <TouchableOpacity
-                key={t.id}
-                style={styles.topicCircle}
-                onPress={() => goTo('issues')}
-              >
-                <Text style={styles.topicEmoji}>{t.emoji}</Text>
-                <Text style={styles.topicLabel}>{t.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </Animated.View>
-
-        {/* DAILY FACT */}
-        <Animated.View style={[styles.factCard, { opacity: fadeAnim }]}>
-          <Text style={styles.factBadge}>🌱 TODAY'S FACT</Text>
-          <Text style={styles.factText}>
-            "15 billion trees are cut down every year — that's 2,000 every single second."
-          </Text>
-          <Text style={styles.factSource}>— UN Environment Programme</Text>
-        </Animated.View>
-
-        {/* CTA BUTTONS */}
-        <View style={styles.ctaRow}>
-          <TouchableOpacity style={styles.ctaPrimary} onPress={() => goTo('quiz')}>
-            <Text style={styles.ctaPrimaryText}>Take the Quiz 🧠</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.ctaSecondary} onPress={() => goTo('videos')}>
-            <Text style={styles.ctaSecondaryText}>Watch ▶️</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Focus Areas</Text>
+          <TouchableOpacity onPress={() => goTo('issues')}>
+            <Text style={styles.sectionLink}>View all</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={{ height: 20 }} />
+        <View style={styles.topicList}>
+          {TOPICS.map((topic) => (
+            <TouchableOpacity
+              key={topic.id}
+              activeOpacity={0.85}
+              style={styles.topicCard}
+              onPress={() => goTo(topic.route)}>
+              <View style={styles.topicIconWrap}>
+                <Ionicons name={topic.icon} size={20} color={Palette.accent} />
+              </View>
+              <View style={styles.topicTextWrap}>
+                <Text style={styles.topicTitle}>{topic.title}</Text>
+                <Text style={styles.topicSubtitle}>{topic.subtitle}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Palette.textMuted} />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.factCard}>
+          <Text style={styles.factLabel}>TODAY'S FACT</Text>
+          <Text style={styles.factText}>
+            About 15 billion trees are cut down yearly, reducing carbon absorption capacity and weakening ecosystems.
+          </Text>
+          <Text style={styles.factSource}>Source: UNEP</Text>
+        </View>
+
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.primaryAction} onPress={() => goTo('quiz')}>
+            <Ionicons name="school-outline" size={18} color={Palette.bg} />
+            <Text style={styles.primaryActionText}>Take Quiz</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.secondaryAction} onPress={() => goTo('videos')}>
+            <Ionicons name="play-circle-outline" size={18} color={Palette.textPrimary} />
+            <Text style={styles.secondaryActionText}>Watch Videos</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050f07' },
-  header: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 8 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  greeting: { color: '#5a8a6a', fontSize: 13, fontWeight: '500', marginBottom: 2 },
-  headerTitle: { color: '#e8f5ee', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
-  leafBadge: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#0f2a14', borderWidth: 1, borderColor: '#1e4028',
-    alignItems: 'center', justifyContent: 'center',
+  container: {
+    flex: 1,
+    backgroundColor: Palette.bg,
   },
-  heroCard: {
-    marginHorizontal: 16, marginTop: 16, marginBottom: 16,
-    backgroundColor: '#0a1f10', borderRadius: 24,
-    borderWidth: 1, borderColor: '#1a3a20', padding: 24,
+  bgGlowTop: {
+    position: 'absolute',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(82, 242, 182, 0.08)',
+    top: -80,
+    left: -60,
   },
-  heroLabel: { color: '#5dffb0', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 6 },
-  heroNumber: { color: '#e8f5ee', fontSize: 72, fontWeight: '800', lineHeight: 76, letterSpacing: -2 },
-  heroSub: { color: '#6a9a7a', fontSize: 14, marginTop: 4, marginBottom: 20 },
-  progressContainer: {},
-  progressLabel: { color: '#5a8a6a', fontSize: 12, marginBottom: 8 },
-  progressTrack: { height: 6, backgroundColor: '#1a3a20', borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#5dffb0', borderRadius: 3 },
-  progressPct: { color: '#5dffb0', fontSize: 12, fontWeight: '700', marginTop: 6, textAlign: 'right' },
-  statsRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 10, marginBottom: 24 },
-  statChip: {
-    flex: 1, backgroundColor: '#0a1f10', borderRadius: 16,
-    borderWidth: 1, borderColor: '#1a3a20', padding: 14, alignItems: 'center',
+  bgGlowRight: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(126, 189, 255, 0.08)',
+    top: 120,
+    right: -110,
   },
-  statVal: { color: '#5dffb0', fontSize: 20, fontWeight: '800' },
-  statLab: { color: '#5a8a6a', fontSize: 10, textAlign: 'center', marginTop: 3, lineHeight: 13 },
+  header: {
+    paddingHorizontal: 22,
+    paddingBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  greeting: {
+    color: Palette.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  title: {
+    ...Fonts.title,
+    color: Palette.textPrimary,
+    marginTop: 4,
+  },
+  headerBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Palette.surface,
+    borderWidth: 1,
+    borderColor: Palette.border,
+  },
+  hero: {
+    marginHorizontal: 16,
+    borderRadius: Radius.xl,
+    padding: 22,
+    backgroundColor: Palette.surface,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    ...Elevation.card,
+  },
+  heroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  heroLabel: {
+    ...Fonts.label,
+    color: Palette.accent,
+  },
+  heroPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.accentSoft,
+  },
+  heroPillText: {
+    color: Palette.accent,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  heroNumber: {
+    marginTop: 12,
+    color: Palette.textPrimary,
+    fontSize: 68,
+    fontWeight: '800',
+    letterSpacing: -2,
+    lineHeight: 74,
+  },
+  heroSub: {
+    color: Palette.textSecondary,
+    fontSize: 14,
+    lineHeight: 22,
+    marginTop: 2,
+  },
+  progressBlock: {
+    marginTop: 18,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressTitle: {
+    color: Palette.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  progressPercent: {
+    color: Palette.accent,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  progressTrack: {
+    height: 8,
+    borderRadius: 8,
+    backgroundColor: '#173029',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    width: '38%',
+    height: '100%',
+    borderRadius: 8,
+    backgroundColor: Palette.accent,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 16,
+    marginTop: 14,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: Radius.md,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surfaceAlt,
+    alignItems: 'center',
+  },
+  statValue: {
+    color: Palette.textPrimary,
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  statLabel: {
+    marginTop: 5,
+    color: Palette.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  sectionHeader: {
+    marginTop: 24,
+    marginBottom: 10,
+    paddingHorizontal: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   sectionTitle: {
-    color: '#e8f5ee', fontSize: 18, fontWeight: '700',
-    paddingHorizontal: 22, marginBottom: 14, letterSpacing: -0.3,
+    ...Fonts.section,
+    color: Palette.textPrimary,
   },
-  topicsScroll: { paddingLeft: 16, marginBottom: 24 },
-  topicCircle: {
-    alignItems: 'center', marginRight: 14,
-    backgroundColor: '#0a1f10', borderRadius: 40, borderWidth: 1, borderColor: '#1a3a20',
-    width: 72, height: 72, justifyContent: 'center',
+  sectionLink: {
+    color: Palette.accent,
+    fontSize: 13,
+    fontWeight: '700',
   },
-  topicEmoji: { fontSize: 26, marginBottom: 2 },
-  topicLabel: { color: '#6a9a7a', fontSize: 9, fontWeight: '600' },
+  topicList: {
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  topicCard: {
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surfaceAlt,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    ...Elevation.soft,
+  },
+  topicIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Palette.accentSoft,
+    borderWidth: 1,
+    borderColor: 'rgba(82, 242, 182, 0.28)',
+  },
+  topicTextWrap: {
+    flex: 1,
+  },
+  topicTitle: {
+    color: Palette.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  topicSubtitle: {
+    marginTop: 4,
+    color: Palette.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+  },
   factCard: {
-    marginHorizontal: 16, backgroundColor: '#0a1f10', borderRadius: 20,
-    borderWidth: 1, borderColor: '#1e4028', padding: 20, marginBottom: 20,
+    marginTop: 16,
+    marginHorizontal: 16,
+    borderRadius: Radius.lg,
+    backgroundColor: Palette.surface,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    padding: 18,
   },
-  factBadge: { color: '#5dffb0', fontSize: 10, fontWeight: '700', letterSpacing: 1.5, marginBottom: 10 },
-  factText: { color: '#e8f5ee', fontSize: 15, lineHeight: 24, fontStyle: 'italic' },
-  factSource: { color: '#5a8a6a', fontSize: 11, marginTop: 10 },
-  ctaRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 10 },
-  ctaPrimary: {
-    flex: 2, backgroundColor: '#5dffb0', borderRadius: 16, padding: 16, alignItems: 'center',
+  factLabel: {
+    ...Fonts.label,
+    color: Palette.warning,
   },
-  ctaPrimaryText: { color: '#050f07', fontWeight: '800', fontSize: 15 },
-  ctaSecondary: {
-    flex: 1, backgroundColor: '#0a1f10', borderRadius: 16, padding: 16,
-    alignItems: 'center', borderWidth: 1, borderColor: '#1a3a20',
+  factText: {
+    marginTop: 8,
+    color: Palette.textPrimary,
+    fontSize: 14,
+    lineHeight: 22,
   },
-  ctaSecondaryText: { color: '#e8f5ee', fontWeight: '700', fontSize: 15 },
+  factSource: {
+    marginTop: 8,
+    color: Palette.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  actionsRow: {
+    marginTop: 16,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  primaryAction: {
+    flex: 1.3,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.accent,
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  primaryActionText: {
+    color: Palette.bg,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  secondaryAction: {
+    flex: 1,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.surfaceAlt,
+    minHeight: 52,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  secondaryActionText: {
+    color: Palette.textPrimary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });
