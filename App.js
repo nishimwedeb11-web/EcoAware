@@ -32,22 +32,22 @@ export default function App() {
         }}
       >
         <Tab.Screen
-          name="Home"
+          name="home"
           component={HomeScreen}
           options={{ tabBarIcon: () => <Text style={{ fontSize: 18 }}>🏠</Text>, tabBarLabel: 'Home' }}
         />
         <Tab.Screen
-          name="Issues"
+          name="issues"
           component={IssuesScreen}
           options={{ tabBarIcon: () => <Text style={{ fontSize: 18 }}>🌍</Text>, tabBarLabel: 'Issues' }}
         />
         <Tab.Screen
-          name="Videos"
+          name="videos"
           component={VideoScreen}
           options={{ tabBarIcon: () => <Text style={{ fontSize: 18 }}>▶️</Text>, tabBarLabel: 'Videos' }}
         />
         <Tab.Screen
-          name="Quiz"
+          name="quiz"
           component={QuizScreen}
           options={{ tabBarIcon: () => <Text style={{ fontSize: 18 }}>🧠</Text>, tabBarLabel: 'Quiz' }}
         />

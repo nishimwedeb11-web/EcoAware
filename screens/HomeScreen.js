@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 const TOPICS = [
   { id: 1, emoji: '🌊', label: 'Ocean' },
@@ -21,8 +22,17 @@ const STATS = [
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+
+  const goTo = (screenName) => {
+    if (navigation?.navigate) {
+      navigation.navigate(screenName);
+      return;
+    }
+    router.push(`/(tabs)/${screenName}`);
+  };
 
   useEffect(() => {
     Animated.parallel([
@@ -81,7 +91,7 @@ export default function HomeScreen({ navigation }) {
               <TouchableOpacity
                 key={t.id}
                 style={styles.topicCircle}
-                onPress={() => navigation.navigate('Issues')}
+                onPress={() => goTo('issues')}
               >
                 <Text style={styles.topicEmoji}>{t.emoji}</Text>
                 <Text style={styles.topicLabel}>{t.label}</Text>
@@ -101,10 +111,10 @@ export default function HomeScreen({ navigation }) {
 
         {/* CTA BUTTONS */}
         <View style={styles.ctaRow}>
-          <TouchableOpacity style={styles.ctaPrimary} onPress={() => navigation.navigate('Quiz')}>
+          <TouchableOpacity style={styles.ctaPrimary} onPress={() => goTo('quiz')}>
             <Text style={styles.ctaPrimaryText}>Take the Quiz 🧠</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.ctaSecondary} onPress={() => navigation.navigate('Videos')}>
+          <TouchableOpacity style={styles.ctaSecondary} onPress={() => goTo('videos')}>
             <Text style={styles.ctaSecondaryText}>Watch ▶️</Text>
           </TouchableOpacity>
         </View>
